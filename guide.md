@@ -19,3 +19,4 @@ Examples:
 curl -i -X GET localhost:1000
 curl -i -X GET localhost:1000/lists
 curl -i -X POST localhost:1000/create
+curl -i -X GET localhost:10000/update -d '{"ID": 1, "items": [{"name": "chocolate", "check": true}]}'

@@ -82,6 +82,26 @@ func _goListCtxDelete(ID int) bool {
 	return false
 }
 
+func _goListCtxUpdate(goList GoList) bool {
+	for e := _goListCtx.lists.Front(); e != nil; e= e.Next() {
+		i := e.Value.(GoList)
+		if i.ID == goList.ID {
+			_goListCtx.lists.Remove(e)
+			_goListCtx.lists.PushBack(goList)
+			return true
+		}
+	}
+	return false
+}
+
+func updateList(w http.ResponseWriter, r *http.Request) {
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var goList GoList
+	err := json.Unmarshal(reqBody, &goList)
+	if err != nil { log.Println(err) }
+	_goListCtxUpdate(goList)
+}
+
 func deleteList(w http.ResponseWriter, r *http.Request) {
 	reqBody, _ := ioutil.ReadAll(r.Body)
 	body := string(reqBody)
@@ -118,6 +138,7 @@ func handleRequest() {
 	http.HandleFunc("/lists", getLists)
 	http.HandleFunc("/create", createList)
 	http.HandleFunc("/delete", deleteList)
+	http.HandleFunc("/update", updateList)
 	log.Fatal(http.ListenAndServe(":10000", nil))
 }
 
