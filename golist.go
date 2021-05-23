@@ -4,8 +4,10 @@ import (
 	"container/list"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 type GoItem struct {
@@ -69,6 +71,28 @@ func _goListCtxNew() int {
 	return ID
 }
 
+func _goListCtxDelete(ID int) bool {
+	for e := _goListCtx.lists.Front(); e != nil; e= e.Next() {
+		goList := e.Value.(GoList)
+		if goList.ID == ID {
+			_goListCtx.lists.Remove(e)
+			return true
+		}
+	}
+	return false
+}
+
+func deleteList(w http.ResponseWriter, r *http.Request) {
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	body := string(reqBody)
+	ID, _ := strconv.Atoi(body)
+	if _goListCtxDelete(ID) {
+		fmt.Printf("Deleted list %d\n", ID)
+	} else {
+		fmt.Printf("Failed to delete list %d\n", ID)
+	}
+}
+
 func createList(w http.ResponseWriter, r *http.Request) {
 	ID := _goListCtxNew()
 	fmt.Fprintf(w, "%d", ID)
@@ -93,6 +117,7 @@ func handleRequest() {
 	http.HandleFunc("/", rootPage)
 	http.HandleFunc("/lists", getLists)
 	http.HandleFunc("/create", createList)
+	http.HandleFunc("/delete", deleteList)
 	log.Fatal(http.ListenAndServe(":10000", nil))
 }
 
