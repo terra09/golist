@@ -1,0 +1,38 @@
+GET /mercado/
+response code: 200
+[{
+  id: '',
+  items: [
+    { nome: 'banana', checked: true },
+    { nome: 'xuxu', checked: false },
+    { nome: 'osso', checked: false }
+  ]
+}]
+[] -> nossas listas está vazia
+
+GET /mercado/:id
+response code: 200
+{
+  items: [
+    { nome: 'banana', checked: true },
+    { nome: 'xuxu', checked: false },
+    { nome: 'osso', checked: false }
+  ]
+
+}
+
+POST /mercado/
+
+response: 201 - numero_aqui
+
+POST /mercado/:id
+response code: 200/204
+{
+  items: [
+    { nome: 'banana', checked: true },
+    { nome: 'xuxu', checked: false },
+    { nome: 'osso', checked: false }
+  ]
+}
+
+DELETE /mercado/:id
