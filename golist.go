@@ -133,12 +133,21 @@ func rootPage(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("rootPage has been accessed")
 }
 
+func addDefaultHeaders(fn http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if origin := r.Header.Get("Origin"); origin != "" {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+		}
+		fn(w, r)
+	}
+}
+
 func handleRequest() {
-	http.HandleFunc("/", rootPage)
-	http.HandleFunc("/lists", getLists)
-	http.HandleFunc("/create", createList)
-	http.HandleFunc("/delete", deleteList)
-	http.HandleFunc("/update", updateList)
+	http.HandleFunc("/", addDefaultHeaders(rootPage))
+	http.HandleFunc("/lists", addDefaultHeaders(getLists))
+	http.HandleFunc("/create", addDefaultHeaders(createList))
+	http.HandleFunc("/delete", addDefaultHeaders(deleteList))
+	http.HandleFunc("/update", addDefaultHeaders(updateList))
 	log.Fatal(http.ListenAndServe(":10000", nil))
 }
 
