@@ -1,6 +1,7 @@
 package main
 
 import (
+	"container/list"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -35,8 +36,47 @@ func _dummieLists() []GoList {
 	return lists
 }
 
+type GoListCtx struct {
+	available int
+	lists list.List
+}
+
+// global variable that will store the lists
+var _goListCtx GoListCtx
+
+func _goListCtxInit() {
+	dummy := _dummieLists()
+	_goListCtx.lists.PushBack(dummy[0])
+	_goListCtx.lists.PushBack(dummy[1])
+	_goListCtx.available = 3
+}
+
+func _goListCtxLists() []GoList {
+	var slice = make([]GoList, _goListCtx.lists.Len())
+	var i int = 0
+	for e := _goListCtx.lists.Front(); e != nil; e = e.Next() {
+		slice[i] = e.Value.(GoList)
+		i++
+	}
+	return slice
+}
+
+func _goListCtxNew() int {
+	ID := _goListCtx.available
+	newList := GoList{ ID: ID, Items: make([]GoItem, 0)}
+	_goListCtx.available++
+	_goListCtx.lists.PushBack(newList)
+	return ID
+}
+
+func createList(w http.ResponseWriter, r *http.Request) {
+	ID := _goListCtxNew()
+	fmt.Fprintf(w, "%d", ID)
+	fmt.Printf("Created list %d\n", ID)
+}
+
 func getLists(w http.ResponseWriter, r *http.Request) {
-	lists := _dummieLists()
+	lists := _goListCtxLists()
 	json.NewEncoder(w).Encode(lists)
 	fmt.Println("getList has been accessed, result:")
 	jsonData, err := json.MarshalIndent(lists, "", "\t")
@@ -52,9 +92,11 @@ func rootPage(w http.ResponseWriter, r *http.Request) {
 func handleRequest() {
 	http.HandleFunc("/", rootPage)
 	http.HandleFunc("/lists", getLists)
+	http.HandleFunc("/create", createList)
 	log.Fatal(http.ListenAndServe(":10000", nil))
 }
 
 func main() {
+	_goListCtxInit()
 	handleRequest()
 }
