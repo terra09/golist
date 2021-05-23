@@ -7,3 +7,7 @@
 # Compile and run
 Execute at the project root directory
 > go run .
+
+# REST api
+Following this tutorial
+> https://tutorialedge.net/golang/creating-restful-api-with-golang/
