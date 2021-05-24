@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 )
 
@@ -46,13 +47,6 @@ type GoListCtx struct {
 // global variable that will store the lists
 var _goListCtx GoListCtx
 
-func _goListCtxInit() {
-	dummy := _dummieLists()
-	_goListCtx.lists.PushBack(dummy[0])
-	_goListCtx.lists.PushBack(dummy[1])
-	_goListCtx.available = 3
-}
-
 func _goListCtxLists() []GoList {
 	var slice = make([]GoList, _goListCtx.lists.Len())
 	var i int = 0
@@ -61,6 +55,61 @@ func _goListCtxLists() []GoList {
 		i++
 	}
 	return slice
+}
+
+func _goListCtxStore() {
+	listSlice := _goListCtxLists()
+	f, err := os.Create("GoLists.json")
+	if err != nil {
+		panic(err)
+	}
+	json.NewEncoder(f).Encode(listSlice)
+	f.Close()
+}
+
+func listClear(l *list.List) {
+	for e := l.Front(); e != nil; e = l.Front() {
+		l.Remove(e)
+	}
+}
+
+func _goListCtxLoad() bool {
+	data, err := ioutil.ReadFile("GoLists.json")
+	if err != nil {
+		return false
+	}
+	var goLists []GoList
+	err = json.Unmarshal(data, &goLists)
+	if err != nil {
+		panic(err)
+	}
+	_goListCtx.available = 1
+	listClear(&_goListCtx.lists)
+	for i := 0; i < len(goLists); i++ {
+		_goListCtx.lists.PushBack(goLists[i])
+		if goLists[i].ID > _goListCtx.available {
+			_goListCtx.available = goLists[i].ID + 1
+		}
+	}
+	return true
+}
+
+func _goListCtxInit() {
+	if _goListCtxLoad() == false {
+		_goListCtx.available = 1
+		listClear(&_goListCtx.lists)
+	}
+}
+
+func storeState(w http.ResponseWriter, r *http.Request) {
+	_goListCtxStore()
+}
+
+func loadState(w http.ResponseWriter, r *http.Request) {
+	_goListCtxLoad()
+}
+
+func resetState(w http.ResponseWriter, r *http.Request) {
 }
 
 func _goListCtxNew() int {
@@ -148,6 +197,8 @@ func handleRequest() {
 	http.HandleFunc("/create", addDefaultHeaders(createList))
 	http.HandleFunc("/delete", addDefaultHeaders(deleteList))
 	http.HandleFunc("/update", addDefaultHeaders(updateList))
+	http.HandleFunc("/store", addDefaultHeaders(storeState))
+	http.HandleFunc("/load", addDefaultHeaders(loadState))
 	log.Fatal(http.ListenAndServe(":10000", nil))
 }
 
