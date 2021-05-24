@@ -1,0 +1,6 @@
+* Make a proper rest API
+* Use a database to store info
+* Add new fields to the list
+* Separate things in modules
+* Put front and back end together
+* Put everything into a docker
